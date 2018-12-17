@@ -43,12 +43,13 @@ func main() {
 	logger.Infof(" - env.instanceId: %s\n", env.INSTANCE_ID)
 
 	logger.Infof("HTTP service: %s, is running using port: %d\n", env.NAME, env.PORT)
-	logger.Info("Available GET endpoints are: '/health', '/hello', '/info' and '/request'")
+	logger.Info("Available GET endpoints are: '/health', '/hello' and '/remote'")
 
-	http.HandleFunc("/", api.HandlerHealth)
-	http.HandleFunc("/health", api.HandlerHealth)
-	http.HandleFunc("/hello", api.HandlerHello)
-	http.HandleFunc("/remote", api.HandlerRemote)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", api.HandlerHealth)
+	mux.HandleFunc("/health", api.HandlerHealth)
+	mux.HandleFunc("/hello", api.HandlerHello)
+	mux.HandleFunc("/remote", api.HandlerRemote)
 
-	http.ListenAndServe(":"+strconv.Itoa(env.PORT), nil)
+	http.ListenAndServe(":"+strconv.Itoa(env.PORT), mux)
 }
