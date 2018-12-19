@@ -10,6 +10,7 @@ import (
 	"github.com/google/logger"
 	"github.com/nocquidant/demo-hello/api"
 	"github.com/nocquidant/demo-hello/env"
+	"github.com/nocquidant/demo-hello/parse"
 	"github.com/peterbourgon/ff"
 	"github.com/satori/go.uuid"
 )
@@ -24,8 +25,18 @@ func main() {
 		url  = fs.String("remote", "localhost:8485/hello", "the url of a remote service (default is 'another-svc:8485/hello')")
 	)
 
-	// Use env variable like 'HELLO_NAME=dummy'
-	ff.Parse(fs, os.Args[1:], ff.WithEnvVarPrefix("HELLO"))
+	// We may use a config file...
+	filename := os.Getenv("HELLO_CONFIG_LOCATION")
+	if _, err := os.Stat(filename); !os.IsNotExist(err) {
+		logger.Infof("Using config filename: %s", filename)
+		ff.Parse(fs, os.Args[1:], 
+			ff.WithConfigFile(filename),
+			ff.WithConfigFileParser(parse.PropertiesParser),
+			ff.WithEnvVarPrefix("HELLO"))
+	} else {
+		ff.Parse(fs, os.Args[1:], 
+			ff.WithEnvVarPrefix("HELLO"))
+	}
 
 	env.NAME = *name
 	env.PORT = *port
