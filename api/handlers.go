@@ -94,12 +94,14 @@ func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 		url  = fs.String("remote", "localhost:8485/hello", "the url of a remote service (default is 'another-svc:8485/hello')")
 	)
 
-	filename := os.Getenv("HELLO_CONFIG_LOCATION")
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	var msg string
+	if _, err := os.Stat(os.Getenv("HELLO_CONFIG_LOCATION")); os.IsNotExist(err) {
+		msg = "Reloaded using env vars only"
 		ff.Parse(fs, os.Args[1:],
 			ff.WithEnvVarPrefix("HELLO"))
 	} else {
-		logger.Infof("Using config filename: %s", filename)
+		filename := os.Getenv("HELLO_CONFIG_LOCATION")
+		msg = "Reloaded using env filename: " + filename
 		ff.Parse(fs, os.Args[1:],
 			ff.WithConfigFile(filename),
 			ff.WithConfigFileParser(parse.PropertiesParser),
@@ -109,7 +111,7 @@ func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 	env.NAME = *name
 	env.REMOTE_URL = *url
 
-	io.WriteString(w, kvAsJson("msg", "Reloaded OK"))
+	io.WriteString(w, kvAsJson("msg", msg))
 }
 
 func HandlerRemote(w http.ResponseWriter, req *http.Request) {
