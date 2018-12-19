@@ -61,6 +61,7 @@ func main() {
 	mux.HandleFunc("/health", api.HandlerHealth)
 	mux.HandleFunc("/hello", api.HandlerHello)
 	mux.HandleFunc("/remote", api.HandlerRemote)
+	mux.HandleFunc("/refresh", api.HandlerRefresh)
 
 	http.ListenAndServe(":"+strconv.Itoa(env.PORT), mux)
 }

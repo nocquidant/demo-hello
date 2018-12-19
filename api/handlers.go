@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,7 +14,8 @@ import (
 
 	"github.com/google/logger"
 	"github.com/nocquidant/demo-hello/env"
-
+	"github.com/nocquidant/demo-hello/parse"
+	"github.com/peterbourgon/ff"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -75,6 +77,39 @@ func HandlerHello(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	io.WriteString(w, mapAsJson(m))
+}
+
+func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		writeError(w, http.StatusMethodNotAllowed, "This method is not allowed")
+		return
+	}
+
+	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
+	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
+
+	fs := flag.NewFlagSet("demo-hello", flag.ContinueOnError)
+	var (
+		name = fs.String("name", "hello-svc", "the name of the app (default is 'hello-svc')")
+		url  = fs.String("remote", "localhost:8485/hello", "the url of a remote service (default is 'another-svc:8485/hello')")
+	)
+
+	filename := os.Getenv("HELLO_CONFIG_LOCATION")
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		ff.Parse(fs, os.Args[1:],
+			ff.WithEnvVarPrefix("HELLO"))
+	} else {
+		logger.Infof("Using config filename: %s", filename)
+		ff.Parse(fs, os.Args[1:],
+			ff.WithConfigFile(filename),
+			ff.WithConfigFileParser(parse.PropertiesParser),
+			ff.WithEnvVarPrefix("HELLO"))
+	}
+
+	env.NAME = *name
+	env.REMOTE_URL = *url
+
+	io.WriteString(w, kvAsJson("msg", "Reloaded OK"))
 }
 
 func HandlerRemote(w http.ResponseWriter, req *http.Request) {
