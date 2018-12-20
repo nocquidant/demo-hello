@@ -8,7 +8,6 @@ import (
 	"github.com/google/logger"
 	"github.com/nocquidant/demo-hello/api"
 	"github.com/nocquidant/demo-hello/env"
-	
 	"github.com/satori/go.uuid"
 )
 

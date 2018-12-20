@@ -137,7 +137,9 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 			writeError(w, http.StatusInternalServerError, "Error while unmarshalling response from remote")
 			logger.Errorf("Error while unmarshalling response from remote: %s", err)
 		}
-		io.WriteString(w, kmAsJson("fromRemote", x))
+		h, _ := os.Hostname()
+		msg := fmt.Sprintf("Hello, my name is '%s' (id=%s, host=%s)", env.NAME, env.INSTANCE_ID[:8], h)
+		io.WriteString(w, kmAsJson("msg", msg, "fromRemote", x))
 	} else {
 		io.WriteString(w, fmt.Sprintf("Error while calling the back: %d", resp.StatusCode))
 	}
