@@ -40,6 +40,7 @@ func writeError(w http.ResponseWriter, statusCode int, msg string) {
 	io.WriteString(w, kvAsJson("error", msg))
 }
 
+// Handle the /heatlh GET HTTP endpoint
 func HandlerHealth(w http.ResponseWriter, req *http.Request) {
 	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
 	// This fuction is frequently used by K8S -> do not fill the logs
@@ -47,6 +48,7 @@ func HandlerHealth(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, kvAsJson("health", "UP"))
 }
 
+// Handle the /hello GET HTTP endpoint
 func HandlerHello(w http.ResponseWriter, req *http.Request) {
 	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
 	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
@@ -76,6 +78,7 @@ func HandlerHello(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, mapAsJson(m))
 }
 
+// Handle the /refresh POST HTTP endpoint
 func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		writeError(w, http.StatusMethodNotAllowed, "This method is not allowed")
@@ -90,6 +93,7 @@ func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, kvAsJson("msg", "Reloaded OK"))
 }
 
+// Handle the /remote GET HTTP endpoint
 func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
 	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
