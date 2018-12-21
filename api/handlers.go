@@ -55,7 +55,7 @@ func HandlerHello(w http.ResponseWriter, req *http.Request) {
 
 	h, _ := os.Hostname()
 	m := make(map[string]interface{})
-	m["msg"] = fmt.Sprintf("Hello, my name is '%s' (id=%s, host=%s)", env.NAME, env.INSTANCE_ID[:8], h)
+	m["msg"] = fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h)
 
 	// Hidden feature: response with delay -> /hello?delay=valueInMillis
 	delay := req.URL.Query().Get("delay")
@@ -138,7 +138,7 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 			logger.Errorf("Error while unmarshalling response from remote: %s", err)
 		}
 		h, _ := os.Hostname()
-		msg := fmt.Sprintf("Hello, my name is '%s' (id=%s, host=%s)", env.NAME, env.INSTANCE_ID[:8], h)
+		msg := fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h)
 		io.WriteString(w, kmAsJson("msg", msg, "fromRemote", x))
 	} else {
 		io.WriteString(w, fmt.Sprintf("Error while calling the back: %d", resp.StatusCode))
