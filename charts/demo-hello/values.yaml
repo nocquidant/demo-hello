@@ -1,0 +1,16 @@
+replicaCount: 3
+image: nocquidant/demo-hello
+ingress:
+  enabled: true
+  host: acme.com  
+service:
+  type: ClusterIP
+rbac:
+  enabled: true
+resources:
+  limits:
+   cpu: 15m
+   memory: 10Mi
+  requests:
+   cpu: 5m
+   memory: 5Mi

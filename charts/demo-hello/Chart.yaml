@@ -1,0 +1,14 @@
+name: demo-hello
+version: 0.0.1
+apiVersion: v1
+description: A tiny demo application written in Go
+keywords:
+- api
+- go
+- demo
+home: https://github.com/nocquidant/demo-hello
+sources:
+- https://github.com/nocquidant/demo-hello
+maintainers:
+- name: Nicolas Ocquidant
+  email: nocquidant@gmail.com
