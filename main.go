@@ -8,6 +8,7 @@ import (
 	"github.com/google/logger"
 	"github.com/nocquidant/demo-hello/api"
 	"github.com/nocquidant/demo-hello/env"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -24,14 +25,17 @@ func main() {
 	logger.Infof(" - env.remoteUrl: %s\n", env.REMOTE_URL)
 
 	logger.Infof("HTTP service: %s, is running using port: %d\n", env.NAME, env.PORT)
-	logger.Info("Available GET endpoints are: '/health', '/hello' and '/remote'")
+	logger.Info("Available GET endpoints are: '/health', '/hello', '/refresh' and '/remote'")
 
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/", api.HandlerHealth)
 	mux.HandleFunc("/health", api.HandlerHealth)
 	mux.HandleFunc("/hello", api.HandlerHello)
 	mux.HandleFunc("/remote", api.HandlerRemote)
 	mux.HandleFunc("/refresh", api.HandlerRefresh)
+
+	mux.Handle("/metrics", promhttp.Handler())
 
 	http.ListenAndServe(":"+strconv.Itoa(env.PORT), mux)
 }
