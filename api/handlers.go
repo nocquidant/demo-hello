@@ -42,7 +42,10 @@ func writeError(w http.ResponseWriter, statusCode int, msg string) {
 
 // Handle the /heatlh GET HTTP endpoint
 func HandlerHealth(w http.ResponseWriter, req *http.Request) {
-	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
+	code := http.StatusOK
+	start := time.Now()
+	defer func() { recordMetrics(start, req, code) }()
+
 	// This fuction is frequently used by K8S -> do not fill the logs
 
 	io.WriteString(w, kvAsJson("health", "UP"))
@@ -50,7 +53,10 @@ func HandlerHealth(w http.ResponseWriter, req *http.Request) {
 
 // Handle the /hello GET HTTP endpoint
 func HandlerHello(w http.ResponseWriter, req *http.Request) {
-	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
+	code := http.StatusOK
+	start := time.Now()
+	defer func() { recordMetrics(start, req, code) }()
+
 	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
 
 	h, _ := os.Hostname()
@@ -85,7 +91,10 @@ func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
+	code := http.StatusOK
+	start := time.Now()
+	defer func() { recordMetrics(start, req, code) }()
+
 	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
 
 	env.Load()
@@ -95,7 +104,10 @@ func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 
 // Handle the /remote GET HTTP endpoint
 func HandlerRemote(w http.ResponseWriter, req *http.Request) {
-	defer func() { recordMetrics(time.Now(), req, http.StatusOK) }()
+	code := http.StatusOK
+	start := time.Now()
+	defer func() { recordMetrics(start, req, code) }()
+
 	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
 
 	// Build the request
@@ -146,7 +158,8 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 }
 
 func recordMetrics(start time.Time, req *http.Request, code int) {
-	duration := time.Since(start)
+	elapsed := time.Since(start)
+
 	histogram.With(
 		prometheus.Labels{
 			"service": serviceName,
@@ -154,5 +167,5 @@ func recordMetrics(start time.Time, req *http.Request, code int) {
 			"method":  req.Method,
 			"path":    req.URL.Path,
 		},
-	).Observe(duration.Seconds())
+	).Observe(elapsed.Seconds())
 }

@@ -29,6 +29,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/", api.HandlerHealth)
 	mux.HandleFunc("/health", api.HandlerHealth)
 	mux.HandleFunc("/hello", api.HandlerHello)
 	mux.HandleFunc("/remote", api.HandlerRemote)
