@@ -9,7 +9,7 @@ metadata:
     heritage: {{ .Release.Service }}
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io.port: "8080"
+    prometheus.io.port: "8484"
 spec:
   ports:
   - port: 8484
