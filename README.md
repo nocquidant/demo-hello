@@ -9,6 +9,7 @@ A tiny demo application written in Go that is shipped as a docker container.
 | GET  | /health | Display a 'UP' message |
 | GET  | /hello | Display a 'hello' message |
 | GET  | /remote  | Call a remote service (get) using HELLO_REMOTE env variable |
+| GET  | /refresh  | Reload configuration |
 
 # Docker
 
