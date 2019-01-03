@@ -36,8 +36,22 @@ func init() {
 }
 
 func writeError(w http.ResponseWriter, statusCode int, msg string) {
+	data, err := json.Marshal(ErrorResponse{msg})
+	if err != nil {
+		w.WriteHeader(statusCode)
+		io.WriteString(w, fmt.Sprintf("Error while building response: %s", err))
+		logger.Errorf("Error while building response: %s", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	io.WriteString(w, kvAsJson("error", msg))
+	io.WriteString(w, string(data))
+}
+
+func writeJson(w http.ResponseWriter, json []byte) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, string(json))
 }
 
 // Handle the /heatlh GET HTTP endpoint
@@ -48,7 +62,12 @@ func HandlerHealth(w http.ResponseWriter, req *http.Request) {
 
 	// This fuction is frequently used by K8S -> do not fill the logs
 
-	io.WriteString(w, kvAsJson("health", "UP"))
+	data, err := json.Marshal(HealthResponse{"UP"})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Error while marshalling HealthResponse")
+	} else {
+		writeJson(w, data)
+	}
 }
 
 // Handle the /hello GET HTTP endpoint
@@ -58,10 +77,6 @@ func HandlerHello(w http.ResponseWriter, req *http.Request) {
 	defer func() { recordMetrics(start, req, code) }()
 
 	logger.Infof("%s request to %s\n", req.Method, req.RequestURI)
-
-	h, _ := os.Hostname()
-	m := make(map[string]interface{})
-	m["msg"] = fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h)
 
 	// Hidden feature: response with delay -> /hello?delay=valueInMillis
 	delay := req.URL.Query().Get("delay")
@@ -81,7 +96,15 @@ func HandlerHello(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	io.WriteString(w, mapAsJson(m))
+
+	h, _ := os.Hostname()
+	hello := fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h)
+	data, err := json.Marshal(MsgResponse{hello})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Error while marshalling MsgResponse")
+	} else {
+		writeJson(w, data)
+	}
 }
 
 // Handle the /refresh POST HTTP endpoint
@@ -99,7 +122,12 @@ func HandlerRefresh(w http.ResponseWriter, req *http.Request) {
 
 	env.Load()
 
-	io.WriteString(w, kvAsJson("msg", "Reloaded OK"))
+	data, err := json.Marshal(MsgResponse{"Reloaded OK"})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Error while marshalling MsgResponse")
+	} else {
+		writeJson(w, data)
+	}
 }
 
 // Handle the /remote GET HTTP endpoint
@@ -143,15 +171,25 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 			logger.Errorf("Error while getting body: %s", err)
 			return
 		}
-		var x map[string]interface{}
-		err := json.Unmarshal(bodyBytes, &x)
+
+		var respRemote MsgResponse
+		err := json.Unmarshal(bodyBytes, &respRemote)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "Error while unmarshalling response from remote")
 			logger.Errorf("Error while unmarshalling response from remote: %s", err)
 		}
+
 		h, _ := os.Hostname()
-		msg := fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h)
-		io.WriteString(w, kmAsJson("msg", msg, "fromRemote", x))
+		respCurrent := MsgRemoteResponse{
+			Msg:        fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h),
+			FromRemote: respRemote,
+		}
+		data, err := json.Marshal(respCurrent)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "Error while marshalling MsgRemoteResponse")
+		} else {
+			writeJson(w, data)
+		}
 	} else {
 		io.WriteString(w, fmt.Sprintf("Error while calling the back: %d", resp.StatusCode))
 	}

@@ -37,5 +37,8 @@ func main() {
 
 	mux.Handle("/metrics", promhttp.Handler())
 
-	http.ListenAndServe(":"+strconv.Itoa(env.PORT), mux)
+	err := http.ListenAndServe(":"+strconv.Itoa(env.PORT), mux)
+	if err != nil {
+		logger.Fatal(err)
+	}
 }
