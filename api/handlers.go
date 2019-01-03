@@ -56,11 +56,8 @@ func writeJson(w http.ResponseWriter, json []byte) {
 
 // Handle the /heatlh GET HTTP endpoint
 func HandlerHealth(w http.ResponseWriter, req *http.Request) {
-	code := http.StatusOK
-	start := time.Now()
-	defer func() { recordMetrics(start, req, code) }()
-
-	// This fuction is frequently used by K8S -> do not fill the logs
+	// This fuction is frequently used by K8S 
+	// -> do not fill the logs, do not record metrics neither
 
 	data, err := json.Marshal(HealthResponse{"UP"})
 	if err != nil {
