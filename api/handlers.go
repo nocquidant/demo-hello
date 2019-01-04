@@ -56,7 +56,7 @@ func writeJson(w http.ResponseWriter, json []byte) {
 
 // Handle the /heatlh GET HTTP endpoint
 func HandlerHealth(w http.ResponseWriter, req *http.Request) {
-	// This fuction is frequently used by K8S 
+	// This fuction is frequently used by K8S
 	// -> do not fill the logs, do not record metrics neither
 
 	data, err := json.Marshal(HealthResponse{"UP"})
@@ -160,8 +160,8 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 	// Callers should close resp.Body
 	defer resp.Body.Close()
 
-	// Get body as string
 	if resp.StatusCode == http.StatusOK {
+		// Get body as string
 		bodyBytes, err2 := ioutil.ReadAll(resp.Body)
 		if err2 != nil {
 			writeError(w, http.StatusInternalServerError, "Error while getting body from remote")
@@ -169,6 +169,7 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		// Get body as struct MsgResponse
 		var respRemote MsgResponse
 		err := json.Unmarshal(bodyBytes, &respRemote)
 		if err != nil {
@@ -176,11 +177,14 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 			logger.Errorf("Error while unmarshalling response from remote: %s", err)
 		}
 
+		// Create struct for response
 		h, _ := os.Hostname()
 		respCurrent := MsgRemoteResponse{
 			Msg:        fmt.Sprintf("Hello, my name is '%s', I'm served from '%s'", env.NAME, h),
 			FromRemote: respRemote,
 		}
+
+		// Write response as Json
 		data, err := json.Marshal(respCurrent)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "Error while marshalling MsgRemoteResponse")
@@ -188,7 +192,7 @@ func HandlerRemote(w http.ResponseWriter, req *http.Request) {
 			writeJson(w, data)
 		}
 	} else {
-		io.WriteString(w, fmt.Sprintf("Error while calling the back: %d", resp.StatusCode))
+		writeError(w, resp.StatusCode, "Error while calling the backend app")
 	}
 }
 
